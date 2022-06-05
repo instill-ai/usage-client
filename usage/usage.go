@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/catalinc/hashcash"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	usagePB "github.com/instill-ai/protogen-go/vdp/usage/v1alpha"
@@ -63,14 +62,18 @@ type Minter interface {
 type Reporter interface {
 	// SingleReport represents send one report to the usage server
 	// Types that are assignable to usageData:
-	// 	*usagePB.SessionReport_MgmtUsageData
+	//	*usagePB.SessionReport_MgmtUsageData
 	//	*usagePB.SessionReport_ConnectorUsageData
 	//	*usagePB.SessionReport_ModelUsageData
 	//	*usagePB.SessionReport_PipelineUsageData
 	SingleReport(ctx context.Context, service usagePB.Session_Service, env, version string, usageData interface{}) error
 	// Report sends report to the server regularly based on the report frequency
-	// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs (usagePB.isSessionReport_UsageData, error)
-	Report(ctx context.Context, repository interface{}, service usagePB.Session_Service, env, version string, retrieveUsageData func(repository interface{}) (usageData interface{}, err error))
+	// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs any of the type:
+	//	*usagePB.SessionReport_MgmtUsageData
+	//	*usagePB.SessionReport_ConnectorUsageData
+	//	*usagePB.SessionReport_ModelUsageData
+	//	*usagePB.SessionReport_PipelineUsageData
+	Report(ctx context.Context, service usagePB.Session_Service, env, version string, retrieveUsageData func() interface{})
 }
 
 // reporter represents a reporter that sends usage data to the server on a regular basis
@@ -84,13 +87,10 @@ type reporter struct {
 }
 
 // NewReporter creates a new usage reporter
-func NewReporter(ctx context.Context, conn *grpc.ClientConn, service usagePB.Session_Service, url, env, version string) (Reporter, error) {
+func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service usagePB.Session_Service, url, env, version string) (Reporter, error) {
 	if url == "" {
 		url = defaultURL
 	}
-
-	// Initialize client
-	client := usagePB.NewUsageServiceClient(conn)
 
 	// Create the session
 	resp, err := client.CreateSession(ctx,
@@ -200,13 +200,16 @@ func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Ser
 }
 
 // Report sends report to the server regularly based on the report frequency
-// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs (usagePB.isSessionReport_UsageData, error)
-func (r *reporter) Report(ctx context.Context, repository interface{}, service usagePB.Session_Service, env, version string, retrieveUsageData func(repository interface{}) (interface{}, error)) {
+// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs any of the type:
+//	*usagePB.SessionReport_MgmtUsageData
+//	*usagePB.SessionReport_ConnectorUsageData
+//	*usagePB.SessionReport_ModelUsageData
+//	*usagePB.SessionReport_PipelineUsageData
+func (r *reporter) Report(ctx context.Context, service usagePB.Session_Service, env, version string, retrieveUsageData func() interface{}) {
 
-	for {
-		usageData, _ := retrieveUsageData(repository)
+	for {		
 		localCtx, _ := context.WithTimeout(ctx, timeout)
-		r.SingleReport(localCtx, service, env, version, usageData)
+		r.SingleReport(localCtx, service, env, version, retrieveUsageData)
 		select {
 		case <-ctx.Done():
 			return
@@ -216,18 +219,22 @@ func (r *reporter) Report(ctx context.Context, repository interface{}, service u
 }
 
 // StartReporter creates a usage reporter and start sending usage data to server regularly
-// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs (usagePB.isSessionReport_UsageData, error)
-func StartReporter(ctx context.Context, repository interface{}, conn *grpc.ClientConn, service usagePB.Session_Service, url, env, version string, retrieveUsageData func(repository interface{}) (interface{}, error)) error {
+// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs any of the type:
+//	*usagePB.SessionReport_MgmtUsageData
+//	*usagePB.SessionReport_ConnectorUsageData
+//	*usagePB.SessionReport_ModelUsageData
+//	*usagePB.SessionReport_PipelineUsageData
+func StartReporter(ctx context.Context, u usagePB.UsageServiceClient, service usagePB.Session_Service, url, env, version string, retrieveUsageData func() (interface{})) error {
 	// Delay a short period time to start collecting data
 	usageDelay := 5 * time.Second
 	time.Sleep(usageDelay)
 
-	reporter, err := NewReporter(ctx, conn, service, url, env, version)
+	reporter, err := NewReporter(ctx, u, service, url, env, version)
 	if err != nil {
 		return err
 	}
 
-	go reporter.Report(ctx, repository, service, env, version, retrieveUsageData)
+	go reporter.Report(ctx, service, env, version, retrieveUsageData)
 
 	return nil
 }
