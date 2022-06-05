@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/catalinc/hashcash v0.0.0-20161205220751-e6bc29ff4de9
-	github.com/instill-ai/protogen-go v0.1.5-alpha.0.20220602224042-3494d2a17c70
+	github.com/instill-ai/protogen-go v0.1.5-alpha.0.20220605175730-647086de6b62
 	google.golang.org/protobuf v1.27.1
 )
 

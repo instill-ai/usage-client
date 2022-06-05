@@ -66,14 +66,14 @@ type Reporter interface {
 	//	*usagePB.SessionReport_ConnectorUsageData
 	//	*usagePB.SessionReport_ModelUsageData
 	//	*usagePB.SessionReport_PipelineUsageData
-	SingleReport(ctx context.Context, service usagePB.Session_Service, env, version string, usageData interface{}) error
+	SingleReport(ctx context.Context, service usagePB.Session_Service, edition, version string, usageData interface{}) error
 	// Report sends report to the server regularly based on the report frequency
 	// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs any of the type:
 	//	*usagePB.SessionReport_MgmtUsageData
 	//	*usagePB.SessionReport_ConnectorUsageData
 	//	*usagePB.SessionReport_ModelUsageData
 	//	*usagePB.SessionReport_PipelineUsageData
-	Report(ctx context.Context, service usagePB.Session_Service, env, version string, retrieveUsageData func() interface{})
+	Report(ctx context.Context, service usagePB.Session_Service, edition, version string, retrieveUsageData func() interface{})
 }
 
 // reporter represents a reporter that sends usage data to the server on a regular basis
@@ -87,7 +87,7 @@ type reporter struct {
 }
 
 // NewReporter creates a new usage reporter
-func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service usagePB.Session_Service, url, env, version string) (Reporter, error) {
+func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service usagePB.Session_Service, url, edition, version string) (Reporter, error) {
 	if url == "" {
 		url = defaultURL
 	}
@@ -97,7 +97,7 @@ func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service
 		&usagePB.CreateSessionRequest{
 			Session: &usagePB.Session{
 				Service:    service,
-				Env:        env,
+				Edition:    edition,
 				Version:    version,
 				Arch:       runtime.GOARCH,
 				Os:         runtime.GOOS,
@@ -128,10 +128,10 @@ func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service
 }
 
 // SingleReport represents send one report to the usage server
-func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Service, env, version string, usageData interface{}) error {
+func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Service, edition, version string, usageData interface{}) error {
 	s := Session{
 		Service:    service,
-		Env:        env,
+		Edition:    edition,
 		Version:    version,
 		Arch:       runtime.GOARCH,
 		Os:         runtime.GOOS,
@@ -205,11 +205,11 @@ func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Ser
 //	*usagePB.SessionReport_ConnectorUsageData
 //	*usagePB.SessionReport_ModelUsageData
 //	*usagePB.SessionReport_PipelineUsageData
-func (r *reporter) Report(ctx context.Context, service usagePB.Session_Service, env, version string, retrieveUsageData func() interface{}) {
+func (r *reporter) Report(ctx context.Context, service usagePB.Session_Service, edition, version string, retrieveUsageData func() interface{}) {
 
-	for {		
+	for {
 		localCtx, _ := context.WithTimeout(ctx, timeout)
-		r.SingleReport(localCtx, service, env, version, retrieveUsageData)
+		r.SingleReport(localCtx, service, edition, version, retrieveUsageData)
 		select {
 		case <-ctx.Done():
 			return
@@ -224,17 +224,17 @@ func (r *reporter) Report(ctx context.Context, service usagePB.Session_Service, 
 //	*usagePB.SessionReport_ConnectorUsageData
 //	*usagePB.SessionReport_ModelUsageData
 //	*usagePB.SessionReport_PipelineUsageData
-func StartReporter(ctx context.Context, u usagePB.UsageServiceClient, service usagePB.Session_Service, url, env, version string, retrieveUsageData func() (interface{})) error {
+func StartReporter(ctx context.Context, u usagePB.UsageServiceClient, service usagePB.Session_Service, url, edition, version string, retrieveUsageData func() interface{}) error {
 	// Delay a short period time to start collecting data
 	usageDelay := 5 * time.Second
 	time.Sleep(usageDelay)
 
-	reporter, err := NewReporter(ctx, u, service, url, env, version)
+	reporter, err := NewReporter(ctx, u, service, url, edition, version)
 	if err != nil {
 		return err
 	}
 
-	go reporter.Report(ctx, service, env, version, retrieveUsageData)
+	go reporter.Report(ctx, service, edition, version, retrieveUsageData)
 
 	return nil
 }
