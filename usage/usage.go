@@ -12,10 +12,7 @@ import (
 
 	"github.com/catalinc/hashcash"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"gorm.io/gorm"
 
 	usagev1alpha "github.com/instill-ai/protogen-go/vdp/usage/v1alpha"
 )
@@ -72,7 +69,8 @@ type Reporter interface {
 	//	*usagev1alpha.SessionReport_PipelineUsageData
 	SingleReport(ctx context.Context, service usagev1alpha.Session_Service, env, version string, usageData interface{}) error
 	// Report sends report to the server regularly based on the report frequency
-	Report(ctx context.Context, db *gorm.DB, service usagev1alpha.Session_Service, env, version string, retrieveUsageData func(*gorm.DB) (usageData interface{}, err error))
+	// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs (usagev1alpha.isSessionReport_UsageData, error)
+	Report(ctx context.Context, repository interface{}, service usagev1alpha.Session_Service, env, version string, retrieveUsageData func(repository interface{}) (usageData interface{}, err error))
 }
 
 // reporter represents a reporter that sends usage data to the server on a regular basis
@@ -161,7 +159,7 @@ func (r *reporter) SingleReport(ctx context.Context, service usagev1alpha.Sessio
 	pbSessionData := usagev1alpha.Session(s)
 	report.Session = &pbSessionData
 	// Usage data
-	invalidUsageDataErr := status.Error(codes.InvalidArgument, "invalid usage data")
+	invalidUsageDataErr := errors.New("invalid usage data type")
 	switch service {
 	case usagev1alpha.Session_SERVICE_MGMT:
 		if ud, ok := usageData.(*usagev1alpha.SessionReport_MgmtUsageData); ok {
@@ -202,11 +200,11 @@ func (r *reporter) SingleReport(ctx context.Context, service usagev1alpha.Sessio
 }
 
 // Report sends report to the server regularly based on the report frequency
-// retrieveUsageData is a function that takes *gorm.DB as the input, and outputs (usagev1alpha.isSessionReport_UsageData, error)
-func (r *reporter) Report(ctx context.Context, db *gorm.DB, service usagev1alpha.Session_Service, env, version string, retrieveUsageData func(*gorm.DB) (interface{}, error)) {
+// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs (usagev1alpha.isSessionReport_UsageData, error)
+func (r *reporter) Report(ctx context.Context, repository interface{}, service usagev1alpha.Session_Service, env, version string, retrieveUsageData func(repository interface{}) (interface{}, error)) {
 
 	for {
-		usageData, _ := retrieveUsageData(db)
+		usageData, _ := retrieveUsageData(repository)
 		localCtx, _ := context.WithTimeout(ctx, timeout)
 		r.SingleReport(localCtx, service, env, version, usageData)
 		select {
@@ -218,8 +216,8 @@ func (r *reporter) Report(ctx context.Context, db *gorm.DB, service usagev1alpha
 }
 
 // StartReporter creates a usage reporter and start sending usage data to server regularly
-// retrieveUsageData is a function that takes *gorm.DB as the input, and outputs (usagev1alpha.isSessionReport_UsageData, error)
-func StartReporter(ctx context.Context, db *gorm.DB, conn *grpc.ClientConn, service usagev1alpha.Session_Service, url, env, version string, retrieveUsageData func(*gorm.DB) (interface{}, error)) error {
+// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs (usagev1alpha.isSessionReport_UsageData, error)
+func StartReporter(ctx context.Context, repository interface{}, conn *grpc.ClientConn, service usagev1alpha.Session_Service, url, env, version string, retrieveUsageData func(repository interface{}) (interface{}, error)) error {
 	// Delay a short period time to start collecting data
 	usageDelay := 5 * time.Second
 	time.Sleep(usageDelay)
@@ -229,7 +227,7 @@ func StartReporter(ctx context.Context, db *gorm.DB, conn *grpc.ClientConn, serv
 		return err
 	}
 
-	go reporter.Report(ctx, db, service, env, version, retrieveUsageData)
+	go reporter.Report(ctx, repository, service, env, version, retrieveUsageData)
 
 	return nil
 }
