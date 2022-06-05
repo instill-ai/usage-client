@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	usagev1alpha "github.com/instill-ai/protogen-go/vdp/usage/v1alpha"
+	usagePB "github.com/instill-ai/protogen-go/vdp/usage/v1alpha"
 )
 
 const (
@@ -36,7 +36,7 @@ var (
 )
 
 // Session is the alias of session
-type Session usagev1alpha.Session
+type Session usagePB.Session
 
 // Hash converts the usage data into base64 encoded checksum
 func (s *Session) Hash() (string, error) {
@@ -63,19 +63,19 @@ type Minter interface {
 type Reporter interface {
 	// SingleReport represents send one report to the usage server
 	// Types that are assignable to usageData:
-	// 	*usagev1alpha.SessionReport_MgmtUsageData
-	//	*usagev1alpha.SessionReport_ConnectorUsageData
-	//	*usagev1alpha.SessionReport_ModelUsageData
-	//	*usagev1alpha.SessionReport_PipelineUsageData
-	SingleReport(ctx context.Context, service usagev1alpha.Session_Service, env, version string, usageData interface{}) error
+	// 	*usagePB.SessionReport_MgmtUsageData
+	//	*usagePB.SessionReport_ConnectorUsageData
+	//	*usagePB.SessionReport_ModelUsageData
+	//	*usagePB.SessionReport_PipelineUsageData
+	SingleReport(ctx context.Context, service usagePB.Session_Service, env, version string, usageData interface{}) error
 	// Report sends report to the server regularly based on the report frequency
-	// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs (usagev1alpha.isSessionReport_UsageData, error)
-	Report(ctx context.Context, repository interface{}, service usagev1alpha.Session_Service, env, version string, retrieveUsageData func(repository interface{}) (usageData interface{}, err error))
+	// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs (usagePB.isSessionReport_UsageData, error)
+	Report(ctx context.Context, repository interface{}, service usagePB.Session_Service, env, version string, retrieveUsageData func(repository interface{}) (usageData interface{}, err error))
 }
 
 // reporter represents a reporter that sends usage data to the server on a regular basis
 type reporter struct {
-	client     usagev1alpha.UsageServiceClient
+	client     usagePB.UsageServiceClient
 	sessionUID string
 	start      time.Time
 	minter     Minter
@@ -84,18 +84,18 @@ type reporter struct {
 }
 
 // NewReporter creates a new usage reporter
-func NewReporter(ctx context.Context, conn *grpc.ClientConn, service usagev1alpha.Session_Service, url, env, version string) (Reporter, error) {
+func NewReporter(ctx context.Context, conn *grpc.ClientConn, service usagePB.Session_Service, url, env, version string) (Reporter, error) {
 	if url == "" {
 		url = defaultURL
 	}
 
 	// Initialize client
-	client := usagev1alpha.NewUsageServiceClient(conn)
+	client := usagePB.NewUsageServiceClient(conn)
 
 	// Create the session
 	resp, err := client.CreateSession(ctx,
-		&usagev1alpha.CreateSessionRequest{
-			Session: &usagev1alpha.Session{
+		&usagePB.CreateSessionRequest{
+			Session: &usagePB.Session{
 				Service:    service,
 				Env:        env,
 				Version:    version,
@@ -128,7 +128,7 @@ func NewReporter(ctx context.Context, conn *grpc.ClientConn, service usagev1alph
 }
 
 // SingleReport represents send one report to the usage server
-func (r *reporter) SingleReport(ctx context.Context, service usagev1alpha.Session_Service, env, version string, usageData interface{}) error {
+func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Service, env, version string, usageData interface{}) error {
 	s := Session{
 		Service:    service,
 		Env:        env,
@@ -149,42 +149,42 @@ func (r *reporter) SingleReport(ctx context.Context, service usagev1alpha.Sessio
 		return err
 	}
 
-	report := usagev1alpha.SessionReport{
+	report := usagePB.SessionReport{
 		SessionUid: r.sessionUID,
 		Token:      r.token,
 		Pow:        pow,
 	}
 
 	// Session report
-	pbSessionData := usagev1alpha.Session(s)
+	pbSessionData := usagePB.Session(s)
 	report.Session = &pbSessionData
 	// Usage data
 	invalidUsageDataErr := errors.New("invalid usage data type")
 	switch service {
-	case usagev1alpha.Session_SERVICE_MGMT:
-		if ud, ok := usageData.(*usagev1alpha.SessionReport_MgmtUsageData); ok {
-			pbUsageData := usagev1alpha.SessionReport_MgmtUsageData(*ud)
+	case usagePB.Session_SERVICE_MGMT:
+		if ud, ok := usageData.(*usagePB.SessionReport_MgmtUsageData); ok {
+			pbUsageData := usagePB.SessionReport_MgmtUsageData(*ud)
 			report.UsageData = &pbUsageData
 		} else {
 			return invalidUsageDataErr
 		}
-	case usagev1alpha.Session_SERVICE_CONNECTOR:
-		if ud, ok := usageData.(*usagev1alpha.SessionReport_ConnectorUsageData); ok {
-			pbUsageData := usagev1alpha.SessionReport_ConnectorUsageData(*ud)
+	case usagePB.Session_SERVICE_CONNECTOR:
+		if ud, ok := usageData.(*usagePB.SessionReport_ConnectorUsageData); ok {
+			pbUsageData := usagePB.SessionReport_ConnectorUsageData(*ud)
 			report.UsageData = &pbUsageData
 		} else {
 			return invalidUsageDataErr
 		}
-	case usagev1alpha.Session_SERVICE_MODEL:
-		if ud, ok := usageData.(*usagev1alpha.SessionReport_ModelUsageData); ok {
-			pbUsageData := usagev1alpha.SessionReport_ModelUsageData(*ud)
+	case usagePB.Session_SERVICE_MODEL:
+		if ud, ok := usageData.(*usagePB.SessionReport_ModelUsageData); ok {
+			pbUsageData := usagePB.SessionReport_ModelUsageData(*ud)
 			report.UsageData = &pbUsageData
 		} else {
 			return invalidUsageDataErr
 		}
-	case usagev1alpha.Session_SERVICE_PIPELINE:
-		if ud, ok := usageData.(*usagev1alpha.SessionReport_PipelineUsageData); ok {
-			pbUsageData := usagev1alpha.SessionReport_PipelineUsageData(*ud)
+	case usagePB.Session_SERVICE_PIPELINE:
+		if ud, ok := usageData.(*usagePB.SessionReport_PipelineUsageData); ok {
+			pbUsageData := usagePB.SessionReport_PipelineUsageData(*ud)
 			report.UsageData = &pbUsageData
 		} else {
 			return invalidUsageDataErr
@@ -193,15 +193,15 @@ func (r *reporter) SingleReport(ctx context.Context, service usagev1alpha.Sessio
 		return invalidUsageDataErr
 	}
 
-	_, err = r.client.SendSessionReport(ctx, &usagev1alpha.SendSessionReportRequest{
+	_, err = r.client.SendSessionReport(ctx, &usagePB.SendSessionReportRequest{
 		Report: &report,
 	})
 	return err
 }
 
 // Report sends report to the server regularly based on the report frequency
-// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs (usagev1alpha.isSessionReport_UsageData, error)
-func (r *reporter) Report(ctx context.Context, repository interface{}, service usagev1alpha.Session_Service, env, version string, retrieveUsageData func(repository interface{}) (interface{}, error)) {
+// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs (usagePB.isSessionReport_UsageData, error)
+func (r *reporter) Report(ctx context.Context, repository interface{}, service usagePB.Session_Service, env, version string, retrieveUsageData func(repository interface{}) (interface{}, error)) {
 
 	for {
 		usageData, _ := retrieveUsageData(repository)
@@ -216,8 +216,8 @@ func (r *reporter) Report(ctx context.Context, repository interface{}, service u
 }
 
 // StartReporter creates a usage reporter and start sending usage data to server regularly
-// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs (usagev1alpha.isSessionReport_UsageData, error)
-func StartReporter(ctx context.Context, repository interface{}, conn *grpc.ClientConn, service usagev1alpha.Session_Service, url, env, version string, retrieveUsageData func(repository interface{}) (interface{}, error)) error {
+// retrieveUsageData is a function that takes a backend's repository-layer instance as the input, and outputs (usagePB.isSessionReport_UsageData, error)
+func StartReporter(ctx context.Context, repository interface{}, conn *grpc.ClientConn, service usagePB.Session_Service, url, env, version string, retrieveUsageData func(repository interface{}) (interface{}, error)) error {
 	// Delay a short period time to start collecting data
 	usageDelay := 5 * time.Second
 	time.Sleep(usageDelay)
