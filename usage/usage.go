@@ -7,18 +7,19 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"runtime"
 	"time"
 
 	"github.com/catalinc/hashcash"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/instill-ai/usage-client/internal/logger"
+
 	usagePB "github.com/instill-ai/protogen-go/vdp/usage/v1alpha"
 )
 
 const (
-	// Default server
-	defaultURL = "https://usage.instill.tech"
 	// HashBits is Number of zero bits
 	HashBits = 20
 	// SaltLen is Random salt length
@@ -83,14 +84,10 @@ type reporter struct {
 	start      time.Time
 	minter     Minter
 	token      string
-	url        string
 }
 
 // NewReporter creates a new usage reporter
-func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service usagePB.Session_Service, url, edition, version string) (Reporter, error) {
-	if url == "" {
-		url = defaultURL
-	}
+func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service usagePB.Session_Service, edition, version string) (Reporter, error) {
 
 	// Create the session
 	resp, err := client.CreateSession(ctx,
@@ -121,7 +118,6 @@ func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service
 		start:      time.Now(),
 		minter:     hasher,
 		token:      token,
-		url:        url,
 	}
 
 	return r, nil
@@ -166,37 +162,40 @@ func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Ser
 			pbUsageData := usagePB.SessionReport_MgmtUsageData(*ud)
 			report.UsageData = &pbUsageData
 		} else {
-			return invalidUsageDataErr
+			return fmt.Errorf("[mgmt-backend] %v", invalidUsageDataErr)
 		}
 	case usagePB.Session_SERVICE_CONNECTOR:
 		if ud, ok := usageData.(*usagePB.SessionReport_ConnectorUsageData); ok {
 			pbUsageData := usagePB.SessionReport_ConnectorUsageData(*ud)
 			report.UsageData = &pbUsageData
 		} else {
-			return invalidUsageDataErr
+			return fmt.Errorf("[connector-backend] %v", invalidUsageDataErr)
 		}
 	case usagePB.Session_SERVICE_MODEL:
 		if ud, ok := usageData.(*usagePB.SessionReport_ModelUsageData); ok {
 			pbUsageData := usagePB.SessionReport_ModelUsageData(*ud)
 			report.UsageData = &pbUsageData
 		} else {
-			return invalidUsageDataErr
+			return fmt.Errorf("[model-backend] %v", invalidUsageDataErr)
 		}
 	case usagePB.Session_SERVICE_PIPELINE:
 		if ud, ok := usageData.(*usagePB.SessionReport_PipelineUsageData); ok {
 			pbUsageData := usagePB.SessionReport_PipelineUsageData(*ud)
 			report.UsageData = &pbUsageData
 		} else {
-			return invalidUsageDataErr
+			return fmt.Errorf("[pipeline-backend] %v", invalidUsageDataErr)
 		}
 	default:
 		return invalidUsageDataErr
 	}
 
-	_, err = r.client.SendSessionReport(ctx, &usagePB.SendSessionReportRequest{
+	if _, err = r.client.SendSessionReport(ctx, &usagePB.SendSessionReportRequest{
 		Report: &report,
-	})
-	return err
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Report sends report to the server regularly based on the report frequency
@@ -207,9 +206,14 @@ func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Ser
 //	*usagePB.SessionReport_PipelineUsageData
 func (r *reporter) Report(ctx context.Context, service usagePB.Session_Service, edition, version string, retrieveUsageData func() interface{}) {
 
+	logger, _ := logger.GetZapLogger()
+	defer logger.Sync() //nolint
+
 	for {
 		localCtx, _ := context.WithTimeout(ctx, timeout)
-		r.SingleReport(localCtx, service, edition, version, retrieveUsageData)
+		if err := r.SingleReport(localCtx, service, edition, version, retrieveUsageData()); err != nil {
+			logger.Error(err.Error())
+		}
 		select {
 		case <-ctx.Done():
 			return
@@ -224,17 +228,17 @@ func (r *reporter) Report(ctx context.Context, service usagePB.Session_Service, 
 //	*usagePB.SessionReport_ConnectorUsageData
 //	*usagePB.SessionReport_ModelUsageData
 //	*usagePB.SessionReport_PipelineUsageData
-func StartReporter(ctx context.Context, u usagePB.UsageServiceClient, service usagePB.Session_Service, url, edition, version string, retrieveUsageData func() interface{}) error {
+func StartReporter(ctx context.Context, usageClient usagePB.UsageServiceClient, sessionService usagePB.Session_Service, edition, version string, retrieveUsageData func() interface{}) error {
 	// Delay a short period time to start collecting data
 	usageDelay := 5 * time.Second
 	time.Sleep(usageDelay)
 
-	reporter, err := NewReporter(ctx, u, service, url, edition, version)
+	reporter, err := NewReporter(ctx, usageClient, sessionService, edition, version)
 	if err != nil {
 		return err
 	}
 
-	go reporter.Report(ctx, service, edition, version, retrieveUsageData)
+	go reporter.Report(ctx, sessionService, edition, version, retrieveUsageData)
 
 	return nil
 }
