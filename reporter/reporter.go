@@ -64,7 +64,7 @@ func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service
 		&usagePB.CreateSessionRequest{
 			Session: &usagePB.Session{
 				Service:    service,
-				Edition:    edition,
+				Edition:    session.NormSessionEdition(edition),
 				Version:    version,
 				Arch:       runtime.GOARCH,
 				Os:         runtime.GOOS,
@@ -100,7 +100,7 @@ func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service
 func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Service, edition, version string, usageData interface{}) error {
 	s := session.Session{
 		Service: service,
-		Edition: edition,
+		Edition: session.NormSessionEdition(edition),
 		Version: version,
 		Arch:    runtime.GOARCH,
 		Os:      runtime.GOOS,
