@@ -12,8 +12,7 @@ var once sync.Once
 func GetZapLogger() (*zap.Logger, error) {
 	var err error
 	once.Do(func() {
-		logger, err = zap.NewDevelopment()
-		// logger, err = zap.NewProduction()
+		logger, err = zap.NewProduction()
 	})
 
 	return logger, err

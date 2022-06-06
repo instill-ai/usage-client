@@ -1,20 +1,17 @@
-package usage
+package reporter
 
 import (
-	"bytes"
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"runtime"
 	"time"
 
-	"github.com/catalinc/hashcash"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/catalinc/hashcash"
 	"github.com/instill-ai/usage-client/internal/logger"
+	"github.com/instill-ai/usage-client/session"
 
 	usagePB "github.com/instill-ai/protogen-go/vdp/usage/v1alpha"
 )
@@ -27,37 +24,10 @@ const (
 	// DefaultExtension Extension to add to the minted stamp
 	DefaultExtension = ""
 	// timeout
-	timeout = 15 * time.Second
-)
-
-var (
-	hasher          = hashcash.New(HashBits, SaltLen, DefaultExtension)
+	timeout = 30 * time.Second
+	// Report frequency
 	reportFrequency = 1 * time.Minute
 )
-
-// Session is the alias of session
-type Session usagePB.Session
-
-// Hash converts the usage data into base64 encoded checksum
-func (s *Session) Hash() (string, error) {
-	buf := new(bytes.Buffer)
-	err := json.NewEncoder(buf).Encode(s)
-	if err != nil {
-		return "", err
-	}
-	sum := sha256.Sum256(buf.Bytes())
-	return base64.URLEncoding.EncodeToString(sum[:]), nil
-}
-
-// Expired checks whether the usage data is expired
-func (s *Session) Expired() bool {
-	return time.Since(s.ReportTime.AsTime()) > time.Minute
-}
-
-// Minter a interface that creates Hashcash stamp
-type Minter interface {
-	Mint(string) (string, error)
-}
 
 // Reporter interface
 type Reporter interface {
@@ -106,6 +76,9 @@ func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service
 		return nil, err
 	}
 
+	// Create the minter
+	hasher := hashcash.New(HashBits, SaltLen, DefaultExtension)
+
 	// Validation: token
 	token := resp.GetSession().GetToken()
 	if token == "" {
@@ -125,12 +98,14 @@ func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service
 
 // SingleReport represents send one report to the usage server
 func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Service, edition, version string, usageData interface{}) error {
-	s := Session{
-		Service:    service,
-		Edition:    edition,
-		Version:    version,
-		Arch:       runtime.GOARCH,
-		Os:         runtime.GOOS,
+	s := session.Session{
+		Service: service,
+		Edition: edition,
+		Version: version,
+		Arch:    runtime.GOARCH,
+		Os:      runtime.GOOS,
+		// Note: the Uptime may not accurately reflect the actual time when the computer goes to sleep.
+		// See https://github.com/golang/go/blob/47f806ce81aac555946144f112b9f8733e2ed871/src/time/time.go#L54-L56
 		Uptime:     int64(time.Since(r.start).Truncate(time.Second).Seconds()),
 		ReportTime: timestamppb.New(time.Now()),
 	}
@@ -220,25 +195,4 @@ func (r *reporter) Report(ctx context.Context, service usagePB.Session_Service, 
 		case <-time.After(reportFrequency):
 		}
 	}
-}
-
-// StartReporter creates a usage reporter and start sending usage data to server regularly
-// retrieveUsageData is a function that outputs any of the type:
-//	*usagePB.SessionReport_MgmtUsageData
-//	*usagePB.SessionReport_ConnectorUsageData
-//	*usagePB.SessionReport_ModelUsageData
-//	*usagePB.SessionReport_PipelineUsageData
-func StartReporter(ctx context.Context, usageClient usagePB.UsageServiceClient, sessionService usagePB.Session_Service, edition, version string, retrieveUsageData func() interface{}) error {
-	// Delay a short period time to start collecting data
-	usageDelay := 5 * time.Second
-	time.Sleep(usageDelay)
-
-	reporter, err := NewReporter(ctx, usageClient, sessionService, edition, version)
-	if err != nil {
-		return err
-	}
-
-	go reporter.Report(ctx, sessionService, edition, version, retrieveUsageData)
-
-	return nil
 }
