@@ -14,7 +14,7 @@ import (
 //	*usagePB.SessionReport_ConnectorUsageData
 //	*usagePB.SessionReport_ModelUsageData
 //	*usagePB.SessionReport_PipelineUsageData
-func StartReporter(ctx context.Context, usageClient usagePB.UsageServiceClient, sessionService usagePB.Session_Service, url, edition, version string, retrieveUsageData func() interface{}) error {
+func StartReporter(ctx context.Context, usageClient usagePB.UsageServiceClient, sessionService usagePB.Session_Service, edition, version string, retrieveUsageData func() interface{}) error {
 	reporter, err := reporter.NewReporter(ctx, usageClient, sessionService, edition, version)
 	if err != nil {
 		return err

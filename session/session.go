@@ -36,7 +36,7 @@ func NormSessionEdition(edition string) string {
 	}
 }
 
-// Session is the alias of session
+// Session is a new type of usagePB.session
 type Session usagePB.Session
 
 // Hash converts the usage data into base64 encoded checksum
