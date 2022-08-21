@@ -24,3 +24,17 @@ func StartReporter(ctx context.Context, usageClient usagePB.UsageServiceClient, 
 
 	return nil
 }
+
+// SingleReporter creates a usage reporter and sends one-time usage data to server
+func SingleReporter(ctx context.Context, usageClient usagePB.UsageServiceClient, sessionService usagePB.Session_Service, edition, version string, usageData interface{}) error {
+	reporter, err := reporter.NewReporter(ctx, usageClient, sessionService, edition, version)
+	if err != nil {
+		return err
+	}
+
+	err = reporter.SingleReport(ctx, sessionService, edition, version, usageData)
+	if err != nil {
+		return err
+	}
+	return nil
+}
