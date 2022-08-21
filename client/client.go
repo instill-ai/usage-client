@@ -8,19 +8,32 @@ import (
 	usagePB "github.com/instill-ai/protogen-go/vdp/usage/v1alpha"
 )
 
-// StartReporter creates a usage reporter and start sending usage data to server regularly
+// InitReporter creates a usage reporter
+func InitReporter(ctx context.Context, usageClient usagePB.UsageServiceClient, sessionService usagePB.Session_Service, edition, version string) (reporter.Reporter, error) {
+	reporter, err := reporter.NewReporter(ctx, usageClient, sessionService, edition, version)
+	if err != nil {
+		return nil, err
+	}
+	return reporter, nil
+}
+
+// StartReporter uses a usage reporter to start sending usage data to server regularly
 // retrieveUsageData is a function that outputs any of the type:
 //	*usagePB.SessionReport_MgmtUsageData
 //	*usagePB.SessionReport_ConnectorUsageData
 //	*usagePB.SessionReport_ModelUsageData
 //	*usagePB.SessionReport_PipelineUsageData
-func StartReporter(ctx context.Context, usageClient usagePB.UsageServiceClient, sessionService usagePB.Session_Service, edition, version string, retrieveUsageData func() interface{}) error {
-	reporter, err := reporter.NewReporter(ctx, usageClient, sessionService, edition, version)
+func StartReporter(ctx context.Context, reporter reporter.Reporter, sessionService usagePB.Session_Service, edition, version string, retrieveUsageData func() interface{}) error {
+	go reporter.Report(ctx, sessionService, edition, version, retrieveUsageData)
+
+	return nil
+}
+
+// SingleReporter uses a usage reporter and sends one-time usage data to server
+func SingleReporter(ctx context.Context, reporter reporter.Reporter, sessionService usagePB.Session_Service, edition, version string, usageData interface{}) error {
+	err := reporter.SingleReport(ctx, sessionService, edition, version, usageData)
 	if err != nil {
 		return err
 	}
-
-	go reporter.Report(ctx, sessionService, edition, version, retrieveUsageData)
-
 	return nil
 }
