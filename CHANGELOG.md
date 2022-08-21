@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2-alpha](https://github.com/instill-ai/usage-client/compare/v0.1.1-alpha...v0.1.2-alpha) (2022-08-21)
+
+
+### Bug Fixes
+
+* separate init and start reporter ([b863502](https://github.com/instill-ai/usage-client/commit/b8635029d06ce812feaf3e32c2dc3439b4d59540))
+
 ## [0.1.1-alpha](https://github.com/instill-ai/usage-client/compare/v0.1.0-alpha...v0.1.1-alpha) (2022-06-26)
 
 
