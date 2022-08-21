@@ -26,7 +26,7 @@ const (
 	// timeout
 	timeout = 30 * time.Second
 	// Report frequency
-	reportFrequency = 1 * time.Hour
+	reportFrequency = 10 * time.Minute
 )
 
 // Reporter interface
