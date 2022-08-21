@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0-alpha](https://github.com/instill-ai/usage-client/compare/v0.1.1-alpha...v0.2.0-alpha) (2022-08-21)
+
+
+### Features
+
+* support single reporter ([38dfa98](https://github.com/instill-ai/usage-client/commit/38dfa989e9a9c5b0db08904ad1d1669931a8a094))
+
 ## [0.1.1-alpha](https://github.com/instill-ai/usage-client/compare/v0.1.0-alpha...v0.1.1-alpha) (2022-06-26)
 
 
