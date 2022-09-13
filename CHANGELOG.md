@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1-alpha](https://github.com/instill-ai/usage-client/compare/v0.1.2-alpha...v0.2.1-alpha) (2022-09-13)
+
+
+### Miscellaneous Chores
+
+* release v0.2.1-alpha ([05d5f63](https://github.com/instill-ai/usage-client/commit/05d5f638f2eb632e18435260bc40ca16cc4e5ace))
+
 ## [0.1.2-alpha](https://github.com/instill-ai/usage-client/compare/v0.1.1-alpha...v0.1.2-alpha) (2022-08-21)
 
 
