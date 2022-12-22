@@ -1,5 +1,5 @@
 # usage-client
-Anonymous usage report module for the [Visual Data Preparation (VDP)](https://github.com/instill-ai/vdp) project.
+Anonymous usage report module for the [Versatile Data Pipeline (VDP)](https://github.com/instill-ai/vdp) project.
 
 ## License
 
