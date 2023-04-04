@@ -14,6 +14,8 @@ github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3 h1:lLT7ZLSzGLI08vc9cpd+tYmNWjd
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3/go.mod h1:o//XUCC/F+yRGJoPO/VU0GSB0f8Nhgmxx0VIRUvaC0w=
 github.com/instill-ai/protogen-go v0.3.3-alpha.0.20230217111731-b78c700241b2 h1:TLK82ewEE54IgE71Er+rY5wq7kXVSS0pQd17C6hW+34=
 github.com/instill-ai/protogen-go v0.3.3-alpha.0.20230217111731-b78c700241b2/go.mod h1:7/Jj3ATVozPwB0WmKRM612o/k5UJF8K9oRCNKYH8iy0=
+github.com/instill-ai/protogen-go v0.3.3-alpha.0.20230402125221-c8f1a70b6b8b h1:BI97L8e4pkbQVcqRyQsR9/Q1/4pXB+zFGUWOEL/hZ6U=
+github.com/instill-ai/protogen-go v0.3.3-alpha.0.20230402125221-c8f1a70b6b8b/go.mod h1:7/Jj3ATVozPwB0WmKRM612o/k5UJF8K9oRCNKYH8iy0=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
