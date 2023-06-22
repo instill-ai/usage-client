@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"time"
 
-	usagePB "github.com/instill-ai/protogen-go/vdp/usage/v1alpha"
+	usagePB "github.com/instill-ai/protogen-go/base/usage/v1alpha"
 )
 
 // Session is a new type of usagePB.session

@@ -5,7 +5,7 @@ import (
 
 	"github.com/instill-ai/usage-client/reporter"
 
-	usagePB "github.com/instill-ai/protogen-go/vdp/usage/v1alpha"
+	usagePB "github.com/instill-ai/protogen-go/base/usage/v1alpha"
 )
 
 // InitReporter creates a usage reporter
@@ -19,6 +19,7 @@ func InitReporter(ctx context.Context, usageClient usagePB.UsageServiceClient, s
 
 // StartReporter uses a usage reporter to start sending usage data to server regularly
 // retrieveUsageData is a function that outputs any of the type:
+//
 //	*usagePB.SessionReport_MgmtUsageData
 //	*usagePB.SessionReport_ConnectorUsageData
 //	*usagePB.SessionReport_ModelUsageData

@@ -13,7 +13,7 @@ import (
 	"github.com/instill-ai/usage-client/internal/logger"
 	"github.com/instill-ai/usage-client/session"
 
-	usagePB "github.com/instill-ai/protogen-go/vdp/usage/v1alpha"
+	usagePB "github.com/instill-ai/protogen-go/base/usage/v1alpha"
 )
 
 const (
@@ -175,6 +175,7 @@ func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Ser
 
 // Report sends report to the server regularly based on the report frequency
 // retrieveUsageData is a function that outputs any of the type:
+//
 //	*usagePB.SessionReport_MgmtUsageData
 //	*usagePB.SessionReport_ConnectorUsageData
 //	*usagePB.SessionReport_ModelUsageData
