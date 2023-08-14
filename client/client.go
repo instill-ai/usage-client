@@ -24,15 +24,15 @@ func InitReporter(ctx context.Context, usageClient usagePB.UsageServiceClient, s
 //	*usagePB.SessionReport_ConnectorUsageData
 //	*usagePB.SessionReport_ModelUsageData
 //	*usagePB.SessionReport_PipelineUsageData
-func StartReporter(ctx context.Context, reporter reporter.Reporter, sessionService usagePB.Session_Service, edition, version string, retrieveUsageData func() interface{}) error {
-	go reporter.Report(ctx, sessionService, edition, version, retrieveUsageData)
+func StartReporter(ctx context.Context, reporter reporter.Reporter, sessionService usagePB.Session_Service, edition, version string, ownerUid string, retrieveUsageData func() interface{}) error {
+	go reporter.Report(ctx, sessionService, edition, version, ownerUid,retrieveUsageData)
 
 	return nil
 }
 
 // SingleReporter uses a usage reporter and sends one-time usage data to server
-func SingleReporter(ctx context.Context, reporter reporter.Reporter, sessionService usagePB.Session_Service, edition, version string, usageData interface{}) error {
-	err := reporter.SingleReport(ctx, sessionService, edition, version, usageData)
+func SingleReporter(ctx context.Context, reporter reporter.Reporter, sessionService usagePB.Session_Service, edition, version string, ownerUid string, usageData interface{}) error {
+	err := reporter.SingleReport(ctx, sessionService, edition, version, ownerUid,usageData)
 	if err != nil {
 		return err
 	}
