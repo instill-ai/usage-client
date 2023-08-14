@@ -37,14 +37,14 @@ type Reporter interface {
 	//	*usagePB.SessionReport_ConnectorUsageData
 	//	*usagePB.SessionReport_ModelUsageData
 	//	*usagePB.SessionReport_PipelineUsageData
-	SingleReport(ctx context.Context, service usagePB.Session_Service, edition, version string, usageData interface{}) error
+	SingleReport(ctx context.Context, service usagePB.Session_Service, edition, version string, ownerUid string, usageData interface{}) error
 	// Report sends report to the server regularly based on the report frequency
 	// retrieveUsageData is a function that outputs any of the type:
 	//	*usagePB.SessionReport_MgmtUsageData
 	//	*usagePB.SessionReport_ConnectorUsageData
 	//	*usagePB.SessionReport_ModelUsageData
 	//	*usagePB.SessionReport_PipelineUsageData
-	Report(ctx context.Context, service usagePB.Session_Service, edition, version string, retrieveUsageData func() interface{})
+	Report(ctx context.Context, service usagePB.Session_Service, edition, version string, ownerUid string, retrieveUsageData func() interface{})
 }
 
 // reporter represents a reporter that sends usage data to the server on a regular basis
@@ -97,7 +97,7 @@ func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service
 }
 
 // SingleReport represents send one report to the usage server
-func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Service, edition, version string, usageData interface{}) error {
+func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Service, edition, version string, ownerUid string, usageData interface{}) error {
 	s := session.Session{
 		Service: service,
 		Edition: edition,
@@ -108,6 +108,7 @@ func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Ser
 		// See https://github.com/golang/go/blob/47f806ce81aac555946144f112b9f8733e2ed871/src/time/time.go#L54-L56
 		Uptime:     int64(time.Since(r.start).Truncate(time.Second).Seconds()),
 		ReportTime: timestamppb.New(time.Now()),
+		OwnerUid:   ownerUid,
 	}
 
 	// Generate Proof-of-Word (PoW) with token + hash of session data
@@ -180,14 +181,14 @@ func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Ser
 //	*usagePB.SessionReport_ConnectorUsageData
 //	*usagePB.SessionReport_ModelUsageData
 //	*usagePB.SessionReport_PipelineUsageData
-func (r *reporter) Report(ctx context.Context, service usagePB.Session_Service, edition, version string, retrieveUsageData func() interface{}) {
+func (r *reporter) Report(ctx context.Context, service usagePB.Session_Service, edition, version string, ownerUid string, retrieveUsageData func() interface{}) {
 
 	logger, _ := logger.GetZapLogger()
 	defer logger.Sync() //nolint
 
 	for {
 		localCtx, _ := context.WithTimeout(ctx, timeout)
-		if err := r.SingleReport(localCtx, service, edition, version, retrieveUsageData()); err != nil {
+		if err := r.SingleReport(localCtx, service, edition, version, ownerUid, retrieveUsageData()); err != nil {
 			logger.Error(err.Error())
 		}
 		select {
