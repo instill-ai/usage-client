@@ -57,7 +57,7 @@ type reporter struct {
 }
 
 // NewReporter creates a new usage reporter
-func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service usagePB.Session_Service, edition, version string) (Reporter, error) {
+func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service usagePB.Session_Service, edition, version string, defaultOwnerUid string) (Reporter, error) {
 
 	// Create the session
 	resp, err := client.CreateSession(ctx,
@@ -70,6 +70,7 @@ func NewReporter(ctx context.Context, client usagePB.UsageServiceClient, service
 				Os:         runtime.GOOS,
 				Uptime:     0,
 				ReportTime: timestamppb.New(time.Now()),
+				OwnerUid:   defaultOwnerUid,
 			},
 		})
 	if err != nil {
