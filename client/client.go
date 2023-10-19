@@ -5,7 +5,7 @@ import (
 
 	"github.com/instill-ai/usage-client/reporter"
 
-	usagePB "github.com/instill-ai/protogen-go/base/usage/v1alpha"
+	usagePB "github.com/instill-ai/protogen-go/core/usage/v1alpha"
 )
 
 // InitReporter creates a usage reporter

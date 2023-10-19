@@ -13,7 +13,7 @@ import (
 	"github.com/instill-ai/usage-client/internal/logger"
 	"github.com/instill-ai/usage-client/session"
 
-	usagePB "github.com/instill-ai/protogen-go/base/usage/v1alpha"
+	usagePB "github.com/instill-ai/protogen-go/core/usage/v1alpha"
 )
 
 const (
