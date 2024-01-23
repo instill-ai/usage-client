@@ -6,7 +6,7 @@ retract v0.2.0-alpha
 
 require (
 	github.com/catalinc/hashcash v0.0.0-20220723060415-5e3ec3e24f67
-	github.com/instill-ai/protogen-go v0.3.3-alpha.0.20231206133622-82ac47daf479
+	github.com/instill-ai/protogen-go v0.3.3-alpha.0.20240122214718-7d090df83765
 	google.golang.org/protobuf v1.30.0
 )
 
@@ -22,5 +22,5 @@ require (
 	google.golang.org/genproto v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
-	google.golang.org/grpc v1.56.0 // indirect
+	google.golang.org/grpc v1.56.3 // indirect
 )
