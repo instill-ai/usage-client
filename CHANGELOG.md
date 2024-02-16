@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0-alpha](https://github.com/instill-ai/usage-client/compare/v0.2.4-alpha...v0.3.0-alpha) (2024-02-16)
+
+
+### Features
+
+* adopt latest protobuf package ([#23](https://github.com/instill-ai/usage-client/issues/23)) ([62ace2c](https://github.com/instill-ai/usage-client/commit/62ace2cbc15518c9eb0e95215bb7ff6ba701a1c8))
+
 ## [0.2.4-alpha](https://github.com/instill-ai/usage-client/compare/v0.2.3-alpha...v0.2.4-alpha) (2023-06-22)
 
 
