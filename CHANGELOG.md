@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1-alpha](https://github.com/instill-ai/usage-client/compare/v0.3.0-alpha...v0.3.1-alpha) (2025-04-17)
+
+
+### Bug Fixes
+
+* **mod:** update golang.org/x/net module to fix vulnerability issue ([e29b1f0](https://github.com/instill-ai/usage-client/commit/e29b1f01a52e779c8aac5bb74e629e5585deaf39))
+
 ## [0.3.0-alpha](https://github.com/instill-ai/usage-client/compare/v0.2.4-alpha...v0.3.0-alpha) (2024-02-16)
 
 
