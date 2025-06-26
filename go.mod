@@ -8,7 +8,7 @@ retract v0.2.0-alpha
 
 require (
 	github.com/catalinc/hashcash v0.0.0-20220723060415-5e3ec3e24f67
-	github.com/instill-ai/protogen-go v0.3.3-alpha.0.20240215033939-b0bf95f922f1
+	github.com/instill-ai/protogen-go v0.3.3-alpha.0.20250626141501-c8e22cc2e0b6
 	google.golang.org/protobuf v1.34.2
 )
 
