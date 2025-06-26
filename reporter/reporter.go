@@ -141,7 +141,7 @@ func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Ser
 		} else {
 			return fmt.Errorf("[mgmt-backend] %v", invalidUsageDataErr)
 		}
-	case usagePB.Session_SERVICE_CONNECTOR:
+	case usagePB.Session_SERVICE_CONNECTOR: // Deprecated
 		if ud, ok := usageData.(*usagePB.SessionReport_ConnectorUsageData); ok {
 			pbUsageData := usagePB.SessionReport_ConnectorUsageData(*ud)
 			report.UsageData = &pbUsageData
@@ -161,6 +161,13 @@ func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Ser
 			report.UsageData = &pbUsageData
 		} else {
 			return fmt.Errorf("[pipeline-backend] %v", invalidUsageDataErr)
+		}
+	case usagePB.Session_SERVICE_ARTIFACT:
+		if ud, ok := usageData.(*usagePB.SessionReport_ArtifactUsageData); ok {
+			pbUsageData := usagePB.SessionReport_ArtifactUsageData(*ud)
+			report.UsageData = &pbUsageData
+		} else {
+			return fmt.Errorf("[artifact-backend] %v", invalidUsageDataErr)
 		}
 	default:
 		return invalidUsageDataErr
