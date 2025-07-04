@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.4.0](https://github.com/instill-ai/usage-client/compare/v0.3.0-alpha...v0.4.0) (2025-07-04)
+
+
+### Bug Fixes
+
+* **mod:** update golang.org/x/net module to fix vulnerability issue ([e29b1f0](https://github.com/instill-ai/usage-client/commit/e29b1f01a52e779c8aac5bb74e629e5585deaf39))
+
+
+### Miscellaneous
+
+* **deps:** bump golang.org/x/net from 0.17.0 to 0.23.0 ([#26](https://github.com/instill-ai/usage-client/issues/26)) ([08e8ef7](https://github.com/instill-ai/usage-client/commit/08e8ef774f38fcb3c03de8a77f5450f55db8dd8a))
+* **deps:** bump golang.org/x/net from 0.33.0 to 0.36.0 ([#28](https://github.com/instill-ai/usage-client/issues/28)) ([49504d9](https://github.com/instill-ai/usage-client/commit/49504d982f187756394fffebd7e77c855b394939))
+* **deps:** bump golang.org/x/net from 0.36.0 to 0.38.0 ([#29](https://github.com/instill-ai/usage-client/issues/29)) ([1989dcf](https://github.com/instill-ai/usage-client/commit/1989dcf7cfb55857d7525e8edba9179a5ebcb69a))
+* **deps:** bump google.golang.org/grpc from 1.56.0 to 1.56.3 ([#19](https://github.com/instill-ai/usage-client/issues/19)) ([128cfc5](https://github.com/instill-ai/usage-client/commit/128cfc5ddca339700a58d73a4979be92630b7efc))
+* **deps:** bump google.golang.org/protobuf from 1.30.0 to 1.33.0 ([#25](https://github.com/instill-ai/usage-client/issues/25)) ([4a3a39f](https://github.com/instill-ai/usage-client/commit/4a3a39f2fd614f44e4556afded4f40ab925b7369))
+* **protobuf:** update service type ([#31](https://github.com/instill-ai/usage-client/issues/31)) ([89526ea](https://github.com/instill-ai/usage-client/commit/89526ea95ca7f4fa7ec60ac3999a8ad4e40ed0c4))
+* release v0.4.0 ([44b110d](https://github.com/instill-ai/usage-client/commit/44b110d8317b4a1c2bf08fd7e1ad4f1e75a1d88a))
+* update config.json and formatting ([#30](https://github.com/instill-ai/usage-client/issues/30)) ([0571825](https://github.com/instill-ai/usage-client/commit/057182528ad69416fc3f5b2d5b47b8b3a5308566))
+
 ## [0.3.0-alpha](https://github.com/instill-ai/usage-client/compare/v0.2.4-alpha...v0.3.0-alpha) (2024-02-16)
 
 
