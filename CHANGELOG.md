@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/instill-ai/usage-client/compare/v0.4.0...v0.5.0) (2025-11-20)
+
+
+### Features
+
+* **reporter:** add SERVICE_AGENT support for agent usage data reporting ([#33](https://github.com/instill-ai/usage-client/issues/33)) ([e91a3e7](https://github.com/instill-ai/usage-client/commit/e91a3e75f28a3a697036b978a9210169960ad30f))
+
 ## [0.4.0](https://github.com/instill-ai/usage-client/compare/v0.3.0-alpha...v0.4.0) (2025-07-04)
 
 
