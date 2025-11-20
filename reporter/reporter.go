@@ -169,6 +169,13 @@ func (r *reporter) SingleReport(ctx context.Context, service usagePB.Session_Ser
 		} else {
 			return fmt.Errorf("[artifact-backend] %v", invalidUsageDataErr)
 		}
+	case usagePB.Session_SERVICE_AGENT:
+		if ud, ok := usageData.(*usagePB.SessionReport_AgentUsageData); ok {
+			pbUsageData := usagePB.SessionReport_AgentUsageData(*ud)
+			report.UsageData = &pbUsageData
+		} else {
+			return fmt.Errorf("[agent-backend] %v", invalidUsageDataErr)
+		}
 	default:
 		return invalidUsageDataErr
 	}
